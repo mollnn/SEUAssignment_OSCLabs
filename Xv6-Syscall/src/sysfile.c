@@ -66,12 +66,19 @@ sys_dup(void)
   return fd;
 }
 
+extern uint readcount;
+extern struct spinlock readcountlock;
+
 int
 sys_read(void)
 {
   struct file *f;
   int n;
   char *p;
+
+  acquire(&readcountlock);
+  readcount += 1;
+  release(&readcountlock);
 
   if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
     return -1;
