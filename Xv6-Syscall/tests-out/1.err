@@ -1,0 +1,1 @@
+../tester/run-tests.sh: line 23: ../../tester/run-xv6-command.exp: Permission denied
