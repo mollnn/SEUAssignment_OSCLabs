@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
     {
         FILE *fp = fopen(argv[i], "r");
 
-        char tmp;
+        char buf[512];
 
         if (fp == NULL)
         {
@@ -16,12 +16,12 @@ int main(int argc, char *argv[])
 
         while (1)
         {
-            tmp = fgetc(fp);
+            fgets(buf, 512, fp);
             if (feof(fp))
             {
                 break;
             }
-            fputc(tmp, stdout);
+            fputs(buf, stdout);
         }
     }
 
