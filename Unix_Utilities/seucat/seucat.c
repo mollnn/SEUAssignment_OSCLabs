@@ -23,6 +23,8 @@ int main(int argc, char *argv[])
             }
             fputs(buf, stdout);
         }
+
+        fclose(fp);
     }
 
     return 0;

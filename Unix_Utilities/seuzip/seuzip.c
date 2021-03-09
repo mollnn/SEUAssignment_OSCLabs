@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        close(fp);
+        fclose(fp);
     }
 
     if (last_cnt)

@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
                 fputc(new_char, stdout);
             }
         }
+        fclose(fp);
     }
     return 0;
 }
