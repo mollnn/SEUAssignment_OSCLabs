@@ -102,6 +102,20 @@ int main(int argc, char *argv[])
             char prompt_string[20] = "seush>";
             write(STDOUT_FILENO, prompt_string, strlen(prompt_string));
             length = read(STDIN_FILENO, input_buffer, 512);
+
+            char strbuffer[512];
+            memset(strbuffer, 0, sizeof strbuffer);
+            int pin = 0;
+            for (int i = 0; i < length; i++)
+            {
+                if (input_buffer[i] == '>' && (i > 0 && input_buffer[i - 1] != ' '))
+                    strbuffer[pin++] = ' ';
+                if (i > 0 && input_buffer[i - 1] == '>' && input_buffer[i] != ' ')
+                    strbuffer[pin++] = ' ';
+                strbuffer[pin++] = input_buffer[i];
+            }
+            strcpy(input_buffer, strbuffer);
+
             ac = split(input_buffer, av);
 
             if (length == 0)
@@ -114,6 +128,21 @@ int main(int argc, char *argv[])
             if (feof(fp))
                 exit(0);
             getline(&buf, &file_size, fp);
+            int length = file_size;
+            char *input_buffer = buf;
+
+            char strbuffer[512];
+            memset(strbuffer, 0, sizeof strbuffer);
+            int pin = 0;
+            for (int i = 0; i < length; i++)
+            {
+                if (input_buffer[i] == '>' && (i > 0 && input_buffer[i - 1] != ' '))
+                    strbuffer[pin++] = ' ';
+                if (i > 0 && input_buffer[i - 1] == '>' && input_buffer[i] != ' ')
+                    strbuffer[pin++] = ' ';
+                strbuffer[pin++] = input_buffer[i];
+            }
+            strcpy(input_buffer, strbuffer);
 
             ac = split(buf, av);
 
@@ -159,7 +188,6 @@ int main(int argc, char *argv[])
         }
         else if ((pid = fork()) == 0)
         {
-
             redir_cnt = 0;
             redir_pos = 0;
             for (int i = 1; i < ac; i++)
@@ -169,7 +197,7 @@ int main(int argc, char *argv[])
                     redir_pos = i;
                 }
 
-            if (redir_cnt > 1 || (redir_cnt > 0 && redir_pos + 1 >= ac))
+            if (redir_cnt > 1 || (redir_cnt > 0 && (redir_pos + 2 != ac)))
             {
                 throw_error_end();
             }
