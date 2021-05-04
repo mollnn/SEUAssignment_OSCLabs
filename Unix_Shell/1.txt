@@ -1,0 +1,9 @@
+1.txt
+bak
+input.sh
+README.html
+seush
+seush.c
+tests
+test-seush.sh
+tests-out

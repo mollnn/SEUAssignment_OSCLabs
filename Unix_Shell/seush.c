@@ -6,8 +6,13 @@
 #include <wait.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 char ws[] = " \t\r\n\v";
+
+char argu_buffer[32][256];
+char redir_filename[256];
 
 void throw_error()
 {
@@ -82,10 +87,13 @@ int main(int argc, char *argv[])
         // fputs("\n", stdout);
         // cnt++;
         char *av[99];
-        for (int i = 0; i < 99; i++)
-            av[i] = NULL;
         int ac;
         int pid;
+        int redir_pos = 0, redir_cnt = 0;
+
+        int argu_cnt = 0;
+        for (int i = 0; i < 99; i++)
+            av[i] = NULL;
         if (argc == 1)
         {
             int length;
@@ -112,11 +120,6 @@ int main(int argc, char *argv[])
             if (file_size == 0)
                 exit(0);
         }
-
-        // fputs("---\n", stdout);
-        // for (int i = 0; i < ac; i++)
-        //     fputs(av[i], stdout), fputs("\n", stdout);
-        // fputs("---\n", stdout);
 
         if (ac > 0 && strcmp(av[0], "exit") == 0)
         {
@@ -156,6 +159,38 @@ int main(int argc, char *argv[])
         }
         else if ((pid = fork()) == 0)
         {
+
+            redir_cnt = 0;
+            redir_pos = 0;
+            for (int i = 1; i < ac; i++)
+                if (strcmp(av[i], ">") == 0)
+                {
+                    redir_cnt++;
+                    redir_pos = i;
+                }
+
+            if (redir_cnt > 1 || (redir_cnt > 0 && redir_pos + 1 >= ac))
+            {
+                throw_error_end();
+            }
+            else if (redir_cnt == 1)
+            {
+                strcpy(redir_filename, av[redir_pos + 1]);
+
+                for (int i = 0; i < ac; i++)
+                    if (i < redir_pos || i > redir_pos + 1)
+                        strcpy(argu_buffer[argu_cnt++], av[i]);
+                for (int i = 0; i < ac; i++)
+                    av[i] = 0;
+                ac -= 2;
+                for (int i = 0; i < ac; i++)
+                    av[i] = argu_buffer[i];
+
+                close(1);
+                int fd = open(redir_filename, O_WRONLY | O_CREAT, 0777);
+                int copyFd = dup2(1, fd);
+            }
+
             if (av[0][0] == '/')
             {
                 execv(av[0], av);
@@ -166,6 +201,7 @@ int main(int argc, char *argv[])
                 strcpy(paths, pathenv);
                 char *pathitem = strtok(paths, ":");
                 int flag = 0;
+
                 while (pathitem)
                 {
                     strcpy(path, pathitem);
@@ -198,6 +234,7 @@ int main(int argc, char *argv[])
                     {
                         execv(path, av);
                     }
+
                     pathitem = strtok(NULL, ":");
                 }
                 if (!flag)
