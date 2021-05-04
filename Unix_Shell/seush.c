@@ -49,7 +49,9 @@ int split(char *cmd, char **argv)
 int main(int argc, char *argv[])
 {
     char shell_addr[255];
+    char current_dir[255];
     getcwd(shell_addr, sizeof(shell_addr));
+    getcwd(current_dir, sizeof(current_dir));
     strcat(shell_addr, "/");
     strcat(shell_addr, argv[0]);
 
@@ -66,8 +68,19 @@ int main(int argc, char *argv[])
     {
         fp = fopen(argv[1], "r");
     }
+
+    int cnt = 0;
     while (1)
     {
+        // fputs("debug: cmd count = ", stdout);
+        // char x[2];
+        // x[0] = 0;
+        // x[1] = 0;
+        // x[0] = '0';
+        // x[0] += cnt;
+        // fputs(x, stdout);
+        // fputs("\n", stdout);
+        // cnt++;
         char *av[99];
         for (int i = 0; i < 99; i++)
             av[i] = NULL;
@@ -100,12 +113,21 @@ int main(int argc, char *argv[])
                 exit(0);
         }
 
+        // fputs("---\n", stdout);
+        // for (int i = 0; i < ac; i++)
+        //     fputs(av[i], stdout), fputs("\n", stdout);
+        // fputs("---\n", stdout);
+
         if (ac > 0 && strcmp(av[0], "exit") == 0)
         {
             if (ac == 1)
                 exit(0);
             else
                 throw_error();
+        }
+        else if (ac > 0 && strcmp(av[0], "#!") == 0)
+        {
+            // just skip
         }
         else if (ac > 0 && strcmp(av[0], "cd") == 0)
         {
@@ -122,6 +144,11 @@ int main(int argc, char *argv[])
             memset(pathenv, 0, sizeof pathenv);
             for (int i = 1; i < ac; i++)
             {
+                if (av[i][0] != '/')
+                {
+                    strcat(pathenv, current_dir);
+                    strcat(pathenv, "/");
+                }
                 strcat(pathenv, av[i]);
                 if (i + 1 < ac)
                     strcat(pathenv, ":");
@@ -157,13 +184,13 @@ int main(int argc, char *argv[])
                             aav[i + 1] = malloc(256);
                             strcpy(aav[i + 1], av[i]);
                         }
+                        strcpy(aav[1], path);
                         FILE *fp = fopen(path, "r");
                         if (fp)
                         {
                             fclose(fp);
-                            fputs("succ ", stdout);
-                            fputs(path, stdout);
-                            fputs("\n", stdout);
+                            // fputs(aav[1], stdout);
+                            // fputs(" we re running\n", stdout);
                             execv(aav[0], aav);
                         }
                     }
@@ -173,10 +200,9 @@ int main(int argc, char *argv[])
                     }
                     pathitem = strtok(NULL, ":");
                 }
-                strcpy(pathitem, ".");
                 if (!flag)
                 {
-                    strcpy(path, pathitem);
+                    strcpy(path, ".");
                     strcat(path, "/");
                     strcat(path, av[0]);
                     int len = strlen(path);
@@ -192,13 +218,13 @@ int main(int argc, char *argv[])
                             aav[i + 1] = malloc(256);
                             strcpy(aav[i + 1], av[i]);
                         }
+                        strcpy(aav[1], path);
                         FILE *fp = fopen(path, "r");
                         if (fp)
                         {
                             fclose(fp);
-                            fputs("succ ", stdout);
-                            fputs(path, stdout);
-                            fputs("\n", stdout);
+                            // fputs(aav[1], stdout);
+                            // fputs(" we re running\n", stdout);
                             execv(aav[0], aav);
                         }
                     }
@@ -210,7 +236,8 @@ int main(int argc, char *argv[])
             }
             throw_error_end();
         }
-        wait(0);
+        else
+            wait(0);
     }
 
     return 0;
