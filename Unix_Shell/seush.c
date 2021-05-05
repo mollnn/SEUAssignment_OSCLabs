@@ -32,7 +32,6 @@ void throw_error_end()
 int split(char *cmd, char **argv)
 {
     int i = 0, j = 0, len = 0;
-
     len = strlen(cmd);
     while (i < len && cmd[i])
     {
@@ -54,7 +53,7 @@ int split(char *cmd, char **argv)
     return j;
 }
 
-void execmd(int ac, char *av[])
+int execmd(int ac, char *av[])
 {
     // fputs("execmd\n", stderr);
     // for (int i = 0; i < ac; i++)
@@ -77,10 +76,10 @@ void execmd(int ac, char *av[])
     {
         // just skip
     }
-    else if (ac > 0 && strcmp(av[0], "sleep") == 0)
-    {
-        // just skip
-    }
+    // else if (ac > 0 && strcmp(av[0], "sleep") == 0)
+    // {
+    //     // just skip
+    // }
     else if (ac > 0 && strcmp(av[0], "cd") == 0)
     {
         if (ac == 2)
@@ -220,9 +219,12 @@ void execmd(int ac, char *av[])
             }
         }
         throw_error_end();
+        return 0;
     }
     else
-        wait(0);
+    {
+        return pid;
+    }
 }
 
 char argu_buffers[32][32][256];
@@ -234,6 +236,8 @@ void execmds(int ac, char *av[])
     int cmd_cnt = 0;
     memset(argu_buffers, 0, sizeof argu_buffers);
     memset(aav, 0, sizeof aav);
+
+    int pids[32];
 
     while (j < ac && strcmp(av[j], "&") == 0)
         j++;
@@ -255,13 +259,16 @@ void execmds(int ac, char *av[])
             i++;
         }
 
-        execmd(argu_cnt, aav[cmd_cnt]);
+        pids[cmd_cnt] = execmd(argu_cnt, aav[cmd_cnt]);
 
         if (j < ac && strcmp(av[j], "&") == 0)
             j++;
 
         cmd_cnt++;
     }
+
+    for (int i = 0; i < cmd_cnt; i++)
+        waitpid(pids[i], NULL, 0);
 }
 
 int main(int argc, char *argv[])
@@ -376,6 +383,5 @@ int main(int argc, char *argv[])
         }
         execmds(ac, av);
     }
-
     return 0;
 }
