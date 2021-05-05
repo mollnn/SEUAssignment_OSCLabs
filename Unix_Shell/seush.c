@@ -317,6 +317,18 @@ int main(int argc, char *argv[])
             }
             strcpy(input_buffer, strbuffer);
 
+            memset(strbuffer, 0, sizeof strbuffer);
+            pin = 0;
+            for (int i = 0; i < length; i++)
+            {
+                if (input_buffer[i] == '&' && (i > 0 && input_buffer[i - 1] != ' '))
+                    strbuffer[pin++] = ' ';
+                if (i > 0 && input_buffer[i - 1] == '&' && input_buffer[i] != ' ')
+                    strbuffer[pin++] = ' ';
+                strbuffer[pin++] = input_buffer[i];
+            }
+            strcpy(input_buffer, strbuffer);
+
             ac = split(input_buffer, av);
 
             if (length == 0)
@@ -340,6 +352,18 @@ int main(int argc, char *argv[])
                 if (input_buffer[i] == '>' && (i > 0 && input_buffer[i - 1] != ' '))
                     strbuffer[pin++] = ' ';
                 if (i > 0 && input_buffer[i - 1] == '>' && input_buffer[i] != ' ')
+                    strbuffer[pin++] = ' ';
+                strbuffer[pin++] = input_buffer[i];
+            }
+            strcpy(input_buffer, strbuffer);
+
+            memset(strbuffer, 0, sizeof strbuffer);
+            pin = 0;
+            for (int i = 0; i < length; i++)
+            {
+                if (input_buffer[i] == '&' && (i > 0 && input_buffer[i - 1] != ' '))
+                    strbuffer[pin++] = ' ';
+                if (i > 0 && input_buffer[i - 1] == '&' && input_buffer[i] != ' ')
                     strbuffer[pin++] = ' ';
                 strbuffer[pin++] = input_buffer[i];
             }
