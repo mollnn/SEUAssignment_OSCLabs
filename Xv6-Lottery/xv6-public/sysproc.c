@@ -7,6 +7,36 @@
 #include "mmu.h"
 #include "proc.h"
 
+int sys_settickets(void)
+{
+	return 233;
+}
+
+int sys_getpinfo(void)
+{
+	acquire(&ptable.lock);
+	struct pstat* target;
+	cprintf("target=%p\n", target);
+	if(argint(0, (int*)(&target)) < 0)
+		return -1;
+
+	cprintf("target=%p\n", target);
+	for(struct proc* p=ptable.proc;p != &(ptable.proc[NPROC]); p++)
+	{
+		const int index = p - ptable.proc;
+		if(p->state != UNUSED)
+		{
+			target->pid[index] = p->pid;
+			target->ticks[index] = p->ticks;
+			target->tickets[index] = p->tickets;
+			target->inuse[index] = p->inuse;
+			target->state[index] = p->state;
+		}
+	}
+	release(&ptable.lock);
+	return 0;
+}
+
 int
 sys_fork(void)
 {

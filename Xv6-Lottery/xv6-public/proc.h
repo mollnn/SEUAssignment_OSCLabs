@@ -1,3 +1,9 @@
+#ifndef _PROC_H_
+#define _PROC_H_
+
+#include "pstat.h"
+#include "spinlock.h"
+
 // Per-CPU state
 struct cpu {
   uchar apicid;                // Local APIC ID
@@ -32,8 +38,6 @@ struct context {
   uint eip;
 };
 
-enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
-
 // Per-process state
 struct proc {
   uint sz;                     // Size of process memory (bytes)
@@ -49,6 +53,10 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  // FOR LOTTERY SCHEDULER
+  int inuse;
+	int ticks;
+	int tickets;
 };
 
 // Process memory is laid out contiguously, low addresses first:
@@ -56,3 +64,12 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
+
+// Let's allow the process table to be public
+struct ptable_type {
+	struct spinlock lock;
+	struct proc proc[NPROC];
+};
+extern struct ptable_type ptable;
+
+#endif

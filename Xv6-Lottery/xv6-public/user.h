@@ -1,3 +1,8 @@
+#ifndef _USER_H_
+#define _USER_H_
+
+#include "pstat.h"
+
 struct stat;
 struct rtcdate;
 
@@ -23,6 +28,8 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int getpinfo(struct pstat*);
+int settickets(int);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -37,3 +44,5 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+
+#endif
