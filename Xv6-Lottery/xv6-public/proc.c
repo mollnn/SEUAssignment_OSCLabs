@@ -360,6 +360,7 @@ void scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
+    int presum = 0;
     int total = 0;
 
     // int printflag = (rand() % 1000 == 0);
@@ -371,48 +372,33 @@ void scheduler(void)
       //   cprintf("+%d\n", p->tickets);
     }
 
-    // Winning ticket
-    int golden_ticket = rand() % total;
+    int winner = rand() % total;
     // cprintf("choose %d/%d\n", rand(), total);
-    int ticket_count = 0;
 
     // if (printflag)
-      // cprintf("SCHEDULE INFO: TOTAL = %d, GOLDEN = %d\n", total, golden_ticket);
+    // cprintf("SCHEDULE INFO: TOTAL = %d, GOLDEN = %d\n", total, golden_ticket);
 
-    // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     {
-      ticket_count += p->tickets;
-      if (p->state != RUNNABLE)
+      presum += p->tickets;
+      if (p->state != RUNNABLE || presum < winner)
         continue;
-      if (ticket_count < golden_ticket)
-        continue;
-
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
       c->proc = p;
       switchuvm(p);
-      p->state = RUNNING;
-      // Start timing
       p->inuse = 1;
-      // const int tickstart = ticks;
-      // cprintf("choose %d\n",p->pid);
-      // Actually run process
+      p->state = RUNNING;
       swtch(&c->scheduler, c->proc->context);
-      // Record ticks
-      p->ticks ++;
       p->inuse = 0;
-
+      p->ticks++;
       switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
       c->proc = 0;
       break;
     }
     release(&ptable.lock);
+    
+    // if (printflag)
+    // cprintf("SCHEDULE INFO: TOTAL = %d, GOLDEN = %d\n", total, golden_ticket);
   }
 }
 

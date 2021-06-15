@@ -95,11 +95,11 @@ sys_uptime(void)
 
 int sys_settickets(void)
 {
-	int number_of_tickets;
-	if(argint(0, &number_of_tickets) < 0)
+	int num;
+	if(argint(0, &num) < 0)
 		return -1;
 	acquire(&ptable.lock);
-	setproctickets(myproc(), number_of_tickets);
+	setproctickets(myproc(), num);
 	release(&ptable.lock);
 	return 0;
 }
@@ -107,8 +107,8 @@ int sys_settickets(void)
 int sys_getpinfo(void)
 {
 	acquire(&ptable.lock);
-	struct pstat* target;
-	if(argint(0, (int*)(&target)) < 0)
+	struct pstat* x;
+	if(argint(0, (int*)(&x)) < 0)
 		return -1;
 
 	for(struct proc* p=ptable.proc;p != &(ptable.proc[NPROC]); p++)
@@ -116,10 +116,10 @@ int sys_getpinfo(void)
 		const int index = p - ptable.proc;
 		if(p->state != UNUSED)
 		{
-			target->pid[index] = p->pid;
-			target->ticks[index] = p->ticks;
-			target->tickets[index] = p->tickets;
-			target->inuse[index] = p->inuse;
+			x->pid[index] = p->pid;
+			x->ticks[index] = p->ticks;
+			x->tickets[index] = p->tickets;
+			x->inuse[index] = p->inuse;
 		}
 	}
 	release(&ptable.lock);
