@@ -169,6 +169,7 @@ UPROGS=\
 	_cat\
 	_echo\
 	_forktest\
+	_grapher\
 	_grep\
 	_init\
 	_kill\

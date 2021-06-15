@@ -6,21 +6,26 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "pstat.h"
 
 int sys_settickets(void)
 {
-	return 233;
+	int number_of_tickets;
+	if(argint(0, &number_of_tickets) < 0)
+		return -1;
+	acquire(&ptable.lock);
+	setproctickets(myproc(), number_of_tickets);
+	release(&ptable.lock);
+	return 0;
 }
 
 int sys_getpinfo(void)
 {
 	acquire(&ptable.lock);
 	struct pstat* target;
-	cprintf("target=%p\n", target);
 	if(argint(0, (int*)(&target)) < 0)
 		return -1;
 
-	cprintf("target=%p\n", target);
 	for(struct proc* p=ptable.proc;p != &(ptable.proc[NPROC]); p++)
 	{
 		const int index = p - ptable.proc;

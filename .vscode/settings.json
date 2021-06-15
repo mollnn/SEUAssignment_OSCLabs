@@ -4,6 +4,7 @@
         "cstdio": "c",
         "types.h": "c",
         "stdio.h": "c",
-        "istream": "c"
+        "istream": "c",
+        "pstat.h": "c"
     }
 }

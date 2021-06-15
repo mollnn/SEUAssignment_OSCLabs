@@ -72,4 +72,6 @@ struct ptable_type {
 };
 extern struct ptable_type ptable;
 
+void setproctickets(struct proc* pp, int n);
+
 #endif

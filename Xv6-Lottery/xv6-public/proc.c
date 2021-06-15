@@ -23,6 +23,15 @@ pinit(void)
   initlock(&ptable.lock, "ptable");
 }
 
+int total_tickets;
+
+void setproctickets(struct proc* pp, int n)
+{
+	total_tickets -= pp->tickets;
+	pp->tickets = n;
+	total_tickets += pp->tickets;
+}
+
 // Must be called with interrupts disabled
 int
 cpuid() {
@@ -197,6 +206,8 @@ fork(void)
   np->parent = curproc;
   *np->tf = *curproc->tf;
 
+  setproctickets(np, curproc->tickets);
+
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -258,6 +269,8 @@ exit(void)
     }
   }
 
+  setproctickets(curproc, 0);
+
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;
   sched();
@@ -291,6 +304,10 @@ wait(void)
         p->parent = 0;
         p->name[0] = 0;
         p->killed = 0;
+
+        p->ticks = 0;
+				setproctickets(p, 0);
+
         p->state = UNUSED;
         release(&ptable.lock);
         return pid;
@@ -321,6 +338,11 @@ scheduler(void)
 {
   struct proc *p;
 
+  // Set init's tickets to 1
+	acquire(&ptable.lock);
+	setproctickets(ptable.proc, 1);
+	release(&ptable.lock);
+
   struct cpu *c = mycpu();
   c->proc = 0;
 
@@ -328,11 +350,20 @@ scheduler(void)
 		// Enable interrupts on this processor.
 		sti();
 
+    // Winning ticket
+		const int golden_ticket = rand()%total_tickets;
+		int ticket_count = 0;
+
 		// Loop over process table looking for process to run.
 		acquire(&ptable.lock);
 		for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      ticket_count += p->tickets;
 			if(p->state != RUNNABLE)
 				continue;
+      if(ticket_count < golden_ticket)
+				continue;
+			else if(ticket_count> total_tickets)
+				cprintf("Extra: %d | %d | %d\n", ticket_count, total_tickets, golden_ticket);
 
 			// Switch to chosen process.  It is the process's job
 			// to release ptable.lock and then reacquire it
@@ -354,6 +385,7 @@ scheduler(void)
 			// Process is done running for now.
 			// It should have changed its p->state before coming back.
 			c->proc = 0;
+      break;
 		}
 		release(&ptable.lock);
 
