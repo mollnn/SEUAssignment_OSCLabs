@@ -8,39 +8,6 @@
 #include "proc.h"
 #include "pstat.h"
 
-int sys_settickets(void)
-{
-	int number_of_tickets;
-	if(argint(0, &number_of_tickets) < 0)
-		return -1;
-	acquire(&ptable.lock);
-	setproctickets(myproc(), number_of_tickets);
-	release(&ptable.lock);
-	return 0;
-}
-
-int sys_getpinfo(void)
-{
-	acquire(&ptable.lock);
-	struct pstat* target;
-	if(argint(0, (int*)(&target)) < 0)
-		return -1;
-
-	for(struct proc* p=ptable.proc;p != &(ptable.proc[NPROC]); p++)
-	{
-		const int index = p - ptable.proc;
-		if(p->state != UNUSED)
-		{
-			target->pid[index] = p->pid;
-			target->ticks[index] = p->ticks;
-			target->tickets[index] = p->tickets;
-			target->inuse[index] = p->inuse;
-			target->state[index] = p->state;
-		}
-	}
-	release(&ptable.lock);
-	return 0;
-}
 
 int
 sys_fork(void)
@@ -123,4 +90,38 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+
+int sys_settickets(void)
+{
+	int number_of_tickets;
+	if(argint(0, &number_of_tickets) < 0)
+		return -1;
+	acquire(&ptable.lock);
+	setproctickets(myproc(), number_of_tickets);
+	release(&ptable.lock);
+	return 0;
+}
+
+int sys_getpinfo(void)
+{
+	acquire(&ptable.lock);
+	struct pstat* target;
+	if(argint(0, (int*)(&target)) < 0)
+		return -1;
+
+	for(struct proc* p=ptable.proc;p != &(ptable.proc[NPROC]); p++)
+	{
+		const int index = p - ptable.proc;
+		if(p->state != UNUSED)
+		{
+			target->pid[index] = p->pid;
+			target->ticks[index] = p->ticks;
+			target->tickets[index] = p->tickets;
+			target->inuse[index] = p->inuse;
+		}
+	}
+	release(&ptable.lock);
+	return 0;
 }
